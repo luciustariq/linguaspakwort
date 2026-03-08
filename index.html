@@ -1095,6 +1095,9 @@ color: var(--text-muted);
 .flash-correct { animation: flashGreen 0.8s ease forwards; }
 </style>
 
+<script src="words.js"></script>
+
+
 </head>
 <body>
 
@@ -1288,41 +1291,10 @@ color: var(--text-muted);
 </main>
 
 <script>
-// ---- WORD DATA ----
-let words = [
-  // Nouns
-  { type: 'noun', article: 'das', german: 'Haus', english: 'house', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'der', german: 'Mann', english: 'man', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'die', german: 'Frau', english: 'woman', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'das', german: 'Kind', english: 'child', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'das', german: 'Auto', english: 'car', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'die', german: 'Schule', english: 'school', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'das', german: 'Buch', english: 'book', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'der', german: 'Hund', english: 'dog', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'die', german: 'Katze', english: 'cat', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'das', german: 'Wasser', english: 'water', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'die', german: 'Stadt', english: 'city', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'der', german: 'Tag', english: 'day', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'die', german: 'Nacht', english: 'night', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'das', german: 'Jahr', english: 'year', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'der', german: 'Weg', english: 'way / path', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'die', german: 'Zeit', english: 'time', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'das', german: 'Leben', english: 'life', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'der', german: 'Tisch', english: 'table', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'die', german: 'Tür', english: 'door', strength: 0, wrongCount: 0 },
-  { type: 'noun', article: 'das', german: 'Fenster', english: 'window', strength: 0, wrongCount: 0 },
-  // Verbs
-  { type: 'verb', article: null, german: 'gehen', english: 'to go', strength: 0, wrongCount: 0 },
-  { type: 'verb', article: null, german: 'kommen', english: 'to come', strength: 0, wrongCount: 0 },
-  { type: 'verb', article: null, german: 'machen', english: 'to make / to do', strength: 0, wrongCount: 0 },
-  { type: 'verb', article: null, german: 'sehen', english: 'to see', strength: 0, wrongCount: 0 },
-  { type: 'verb', article: null, german: 'sprechen', english: 'to speak', strength: 0, wrongCount: 0 },
-  { type: 'verb', article: null, german: 'essen', english: 'to eat', strength: 0, wrongCount: 0 },
-  { type: 'verb', article: null, german: 'trinken', english: 'to drink', strength: 0, wrongCount: 0 },
-  { type: 'verb', article: null, german: 'schlafen', english: 'to sleep', strength: 0, wrongCount: 0 },
-  { type: 'verb', article: null, german: 'lesen', english: 'to read', strength: 0, wrongCount: 0 },
-  { type: 'verb', article: null, german: 'schreiben', english: 'to write', strength: 0, wrongCount: 0 },
-];
+
+// ---- WORD DATA (loaded from words.js) ----
+const DEFAULT_WORDS = (typeof WORD_DATA !== 'undefined') ? WORD_DATA : [];
+let words = [];
 
 let currentMode = 'mixed';
 let currentQuestion = null;
@@ -2030,26 +2002,57 @@ function importWords() {
 // ---- PERSISTENT STORAGE ----
 const STORAGE_KEY = 'wortschatz-words-v1';
 
+function wordKey(w) {
+  return (w.german || '').toLowerCase().trim();
+}
+
 function saveWords() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+    const defaultKeys = new Set(DEFAULT_WORDS.map(wordKey));
+    const currentKeys = new Set(words.map(wordKey));
+    const deletedKeys = DEFAULT_WORDS.map(wordKey).filter(k => !currentKeys.has(k));
+    const userAdded = words.filter(w => !defaultKeys.has(wordKey(w)));
+    const strengthMap = {};
+    words.forEach(w => {
+      if (w.strength > 0 || w.wrongCount > 0)
+        strengthMap[wordKey(w)] = { s: w.strength, w: w.wrongCount };
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 2, deletedKeys, userAdded, strengthMap }));
     showSaveIndicator();
   } catch(e) {
     alert('Storage limit reached. Please remove some words to continue saving.');
   }
 }
 
+
+
+
 function loadWords() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (Array.isArray(saved) && saved.length > 0) {
-      // Ensure every word has strength field (backwards compat)
+    if (saved && saved.version === 2) {
+      const deletedKeys = new Set(saved.deletedKeys || []);
+      const strengthMap = saved.strengthMap || {};
+      const userAdded = (saved.userAdded || []).map(w => ({ strength: 0, wrongCount: 0, ...w }));
+      const base = DEFAULT_WORDS
+        .filter(w => !deletedKeys.has(wordKey(w)))
+        .map(w => {
+          const sm = strengthMap[wordKey(w)];
+          return sm ? { ...w, strength: sm.s || 0, wrongCount: sm.w || 0 } : { ...w };
+        });
+      const baseKeys = new Set(base.map(wordKey));
+      const extras = userAdded.filter(w => !baseKeys.has(wordKey(w)));
+      words = [...base, ...extras];
+      return true;
+    } else if (Array.isArray(saved) && saved.length > 0) {
       words = saved.map(w => ({ strength: 0, wrongCount: 0, ...w }));
       return true;
     }
   } catch(e) { /* first run */ }
+  words = DEFAULT_WORDS.map(w => ({ ...w }));
   return false;
 }
+
 
 function showSaveIndicator() {
   const el = document.getElementById('save-indicator');
