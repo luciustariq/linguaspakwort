@@ -1,24 +1,23 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="netlify-email-obfuscation" content="off">
-  <title>Wortschatz - Alpha v2.4</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <script>
-    // Apply saved theme before CSS paint to avoid flash
-    const _t = localStorage.getItem('wortschatz-theme-v1');
-    if (_t) document.documentElement.setAttribute('data-theme', _t);
-  </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="netlify-email-obfuscation" content="off">
+<title>Wortschatz - Alpha v2.3</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script>
+  // Apply saved theme before CSS paint to avoid flash
+  const _t = localStorage.getItem('wortschatz-theme-v1');
+  if (_t) document.documentElement.setAttribute('data-theme', _t);
+</script>
 </head>
 <body>
 
 <header>
   <div>
-    <div class="logo">Wortschatz <span>// alpha v2.4</span></div>
+    <div class="logo">Wortschatz <span>// alpha v2.3</span></div>
   </div>
   <div class="stats-bar">
     <div class="stats-box">
@@ -58,12 +57,10 @@
         <button class="theme-option" id="theme-btn-pastel" onclick="setTheme('pastel')">🌸 Pastel</button>
       </div>
       <button class="settings-item" onclick="resetScore(); closeSettings()">🔄 Reset</button>
-      <button class="settings-item" id="haptics-toggle" onclick="toggleHaptics()">📳 Haptics: <span id="haptics-state">ON</span></button>
+      <button class="settings-item haptics-toggle" id="haptics-toggle" onclick="toggleHaptics()">📳 Haptics: <span id="haptics-state">ON</span></button>
       <button class="settings-item" onclick="openAbout()">ℹ️ About</button>
     </div>
   </div>
-
-  <!-- PRACTICE TAB -->
 
   <div class="practice-section active" id="tab-practice">
     <div class="mode-selector">
@@ -74,75 +71,65 @@
       <button class="mode-pill hard-words-pill" id="hard-words-pill" onclick="setMode('hard', this)">🔥 Hard Words</button>
     </div>
 
-```
-<div class="progress-bar">
-  <div class="progress-fill" id="progress-fill" style="width:0%"></div>
-</div>
-
-<div class="card" id="practice-card">
-  <div class="mode-badge" id="mode-label">Mixed Mode</div>
-
-  <div class="strength-bar" id="strength-bar">
-    <div class="strength-dot" id="sd-0"></div>
-    <div class="strength-dot" id="sd-1"></div>
-    <div class="strength-dot" id="sd-2"></div>
-    <div class="strength-dot" id="sd-3"></div>
-    <div class="strength-dot" id="sd-4"></div>
-    <span class="strength-label" id="strength-label">new</span>
-  </div>
-
-  <div class="question-area">
-    <div class="question-label" id="q-label">Translate to English:</div>
-    <div class="question-word" id="q-word">Loading...</div>
-  </div>
-
-  <div class="article-choices" id="article-choices" style="display:none">
-    <button class="article-btn der-btn" onclick="checkArticle('der')">
-      der <span class="article-label">masculine</span>
-    </button>
-    <button class="article-btn die-btn" onclick="checkArticle('die')">
-      die <span class="article-label">feminine</span>
-    </button>
-    <button class="article-btn das-btn" onclick="checkArticle('das')">
-      das <span class="article-label">neuter</span>
-    </button>
-  </div>
-
-  <div class="voice-row">
-    <button class="voice-btn" id="voice-btn" onclick="speakQuestion()">
-      <span class="voice-icon">🔊</span> Pronounce
-    </button>
-    <label class="auto-speak-toggle">
-      <input type="checkbox" id="auto-speak"> auto-play
-    </label>
-  </div>
-
-  <div class="answer-row" id="answer-row">
-    <input type="text" class="answer-input" id="answer-input"
-      placeholder="Type your answer..."
-      onkeydown="handleKey(event)"
-      inputmode="latin" autocorrect="off" autocapitalize="off"
-      autocomplete="off" spellcheck="false">
-    <button class="submit-btn" onclick="checkAnswer()">Check</button>
-  </div>
-
-  <div class="feedback" id="feedback"></div>
-  <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Word →</button>
-
-  <div class="progress-section">
-    <div class="progress-text">
-      <strong id="words-done">0</strong> / <strong id="words-total">0</strong> words seen
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
     </div>
-    <div class="progress-text" style="color:var(--text-dim);font-size:11px;">
-      Press Enter to check or continue
+
+    <div class="card" id="practice-card">
+      <div class="mode-badge" id="mode-label">Mixed Mode</div>
+
+      <div class="strength-bar" id="strength-bar">
+        <div class="strength-dot" id="sd-0"></div>
+        <div class="strength-dot" id="sd-1"></div>
+        <div class="strength-dot" id="sd-2"></div>
+        <div class="strength-dot" id="sd-3"></div>
+        <div class="strength-dot" id="sd-4"></div>
+        <span class="strength-label" id="strength-label">new</span>
+      </div>
+
+      <div class="question-area">
+        <div class="question-label" id="q-label">Translate to English:</div>
+        <div class="question-word" id="q-word">Loading...</div>
+      </div>
+
+      <div class="article-choices" id="article-choices" style="display:none">
+        <button class="article-btn der-btn" onclick="checkArticle('der')">
+          der
+          <span class="article-label">masculine</span>
+        </button>
+        <button class="article-btn die-btn" onclick="checkArticle('die')">
+          die
+          <span class="article-label">feminine</span>
+        </button>
+        <button class="article-btn das-btn" onclick="checkArticle('das')">
+          das
+          <span class="article-label">neuter</span>
+        </button>
+      </div>
+
+      <div class="voice-row">
+        <button class="voice-btn" id="voice-btn" onclick="speakQuestion()">
+          <span class="voice-icon">🔊</span> Pronounce
+        </button>
+        <label class="auto-speak-toggle">
+          <input type="checkbox" id="auto-speak"> auto-play
+        </label>
+      </div>
+
+      <div class="answer-row" id="answer-row">
+        <input type="text" class="answer-input" id="answer-input" placeholder="Type your answer..." onkeydown="handleKey(event)" inputmode="latin" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false">
+        <button class="submit-btn" onclick="checkAnswer()">Check</button>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+      <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Word →</button>
+
+      <div class="progress-section">
+        <div class="progress-text"><strong id="words-done">0</strong> / <strong id="words-total">0</strong> words seen</div>
+        <div class="progress-text" style="color: var(--text-dim); font-size:11px;">Press Enter to check or continue</div>
+      </div>
     </div>
   </div>
-</div>
-```
-
-  </div>
-
-  <!-- WORD LIST TAB -->
 
   <div class="word-list-section" id="tab-words">
     <div class="import-section">
@@ -157,8 +144,7 @@
           Verb: <code>gehen - to go</code> &nbsp;|&nbsp; <code>schlafen, to sleep</code> (no article = treated as verb)<br>
           Also accepts: <code>Hund, der, dog</code>
         </div>
-        <textarea class="import-textarea" id="import-textarea"
-          placeholder="der Hund - dog&#10;die Katze - cat&#10;das Buch - book&#10;gehen - to go&#10;sprechen - to speak"></textarea>
+        <textarea class="import-textarea" id="import-textarea" placeholder="der Hund - dog&#10;die Katze - cat&#10;das Buch - book&#10;gehen - to go&#10;sprechen - to speak"></textarea>
         <div class="import-actions">
           <button class="import-btn" onclick="importWords()">Import Words</button>
           <button class="import-clear-btn" onclick="document.getElementById('import-textarea').value=''">Clear</button>
@@ -167,61 +153,59 @@
       </div>
     </div>
 
-```
-<div class="add-word-form">
-  <h3>Add a Word</h3>
-  <div class="form-row">
-    <div class="form-field">
-      <label>Type</label>
-      <select class="form-select" id="word-type" onchange="toggleArticleField()">
-        <option value="noun">Noun</option>
-        <option value="verb">Verb</option>
-      </select>
+    <div class="add-word-form">
+      <h3>Add a Word</h3>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Type</label>
+          <select class="form-select" id="word-type" onchange="toggleArticleField()">
+            <option value="noun">Noun</option>
+            <option value="verb">Verb</option>
+          </select>
+        </div>
+        <div class="form-field" id="article-field">
+          <label>Article</label>
+          <select class="form-select" id="word-article">
+            <option value="der">der</option>
+            <option value="die">die</option>
+            <option value="das">das</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>German</label>
+          <input type="text" class="form-input" id="word-german" placeholder="z.B. Haus">
+        </div>
+        <div class="form-field">
+          <label>English</label>
+          <input type="text" class="form-input" id="word-english" placeholder="e.g. house">
+        </div>
+        <div class="form-field" style="justify-content: flex-end; min-width:80px; max-width:80px">
+          <label>&nbsp;</label>
+          <button class="add-btn" onclick="addWord()">Add</button>
+        </div>
+      </div>
     </div>
-    <div class="form-field" id="article-field">
-      <label>Article</label>
-      <select class="form-select" id="word-article">
-        <option value="der">der</option>
-        <option value="die">die</option>
-        <option value="das">das</option>
-      </select>
-    </div>
-    <div class="form-field">
-      <label>German</label>
-      <input type="text" class="form-input" id="word-german" placeholder="z.B. Haus">
-    </div>
-    <div class="form-field">
-      <label>English</label>
-      <input type="text" class="form-input" id="word-english" placeholder="e.g. house">
-    </div>
-    <div class="form-field" style="justify-content:flex-end;min-width:80px;max-width:80px">
-      <label>&nbsp;</label>
-      <button class="add-btn" onclick="addWord()">Add</button>
-    </div>
-  </div>
-</div>
 
-<div class="word-table">
-  <div class="word-table-header">
-    <span>#</span>
-    <span>German</span>
-    <span>English</span>
-    <span>Article</span>
-    <span>❌</span>
-    <span>Del</span>
-  </div>
-  <div class="word-list-scroll" id="word-list-scroll">
-    <div class="word-list-spacer" id="word-list-spacer">
-      <div id="word-list-body"></div>
+    <div class="word-table">
+      <div class="word-table-header">
+        <span>#</span>
+        <span>German</span>
+        <span>English</span>
+        <span>Article</span>
+        <span>❌</span>
+        <span>Del</span>
+      </div>
+      <div class="word-list-scroll" id="word-list-scroll">
+        <div class="word-list-spacer" id="word-list-spacer">
+          <div id="word-list-body"></div>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-```
-
   </div>
 </main>
 
-<!-- About Modal -->
+<script src="words.js"></script>
+<script src="app.js"></script>
 
 <div class="modal-overlay" id="about-modal" onclick="closeAboutOnOverlay(event)">
   <div class="modal-box">
@@ -236,10 +220,5 @@
     <button class="modal-close" onclick="closeAbout()">Close</button>
   </div>
 </div>
-
-<script src="words.js"></script>
-
-<script src="app.js"></script>
-
 </body>
 </html>
