@@ -1,58 +1,73 @@
-# WortTrek – Changelog
+# WortTrek Vocabulary App – Changelog
 
------
-## alpha v2.5
+---
 
-*Current release*
+## v2.6
+_Current release_
 
 ### New Features
+- **— Complete Feedback System Redesign** — Three distinct feedback states with auto-advance timers and a sliding drawer for wrong answers.
 
-- **FBK 4.1 — Show Answer Button** — A “Show” button appears next to “Check”. Reveals the correct answer without marking right or wrong. Highlights the correct article button in article mode. Clears any red error state on the input. Card advances normally after showing.
-- **FBK 1.3 — Hard Words Weighting** — Words you have gotten wrong now appear more frequently in Mixed mode. 1–2 wrong answers = +2 weight boost. 3+ wrong answers = +4 weight boost. Happens invisibly in the background with no UI change.
+| Result | Color | Auto-advance | UI |
+|--------|-------|-------------|-----|
+| ✅ Correct | Green | 1s | Question word turns green, input flashes green |
+| 〜 Lenient | Amber | 1.5s | Struck typo + correct shown in amber, peek bar slides up |
+| ❌ Wrong | Red | No | Struck answer + correct in cyan, drawer slides up from bottom |
+
+- **Input Shake** — Submitting an empty answer triggers a shake animation instead of a silent fail.
+- **Dynamic Feedback Phrases** — Cycles through randomised feedback phrases (Wunderbar! / So close! / Almost!) instead of static text.
+- **Session Mode** — Fixed 30-word session with an end screen showing correct, wrong, accuracy %, time taken, and star rating (⭐ / ⭐⭐ / ⭐⭐⭐).
+- **Word Type Expansion** — Added support for 5 new word types: adjective, adverb, conjunction, preposition, phrase, pronoun (8 types total). Each has its own colour-coded tag in the word list.
+- **Article Mode Fix** — Article mode now only pulls nouns from the queue. Non-noun types no longer appear in article-only sessions.
+- **Article Mode Meaning** — English meaning now shows below the German word in article mode so context is visible while guessing.
+- **`also[]` field** — Words now support alternate accepted answers. Synonyms listed in `also` are accepted in DE→EN checking but never shown as questions.
+- **Word Database Expansion** — Word list expanded from ~300 to ~2000 entries across all 8 word types.
+- **Mixed Unlimited rename** — Mixed mode renamed to Mixed Unlimited to distinguish it from Session Mode.
+
+### UI / Labels
+- App title updated to WortTrek Vocab V2.6
+- Logo updated to `Vocab v2.6`
+
+---
+
+## v2.5
+
+### New Features
+- **— Show Answer Button** — Reveals the correct answer without marking right or wrong. Highlights the correct article button in article mode.
+- **— Hard Words Weighting** — Words answered incorrectly appear more frequently. 1–2 wrong = +2 weight boost. 3+ wrong = +4 weight boost.
 
 ### UI Fix
-
 - Check and Show buttons now align correctly with the answer input bar
 - Input re-enabled on each new question (fix: Show button was permanently disabling it)
 
------
+---
 
-## alpha v2.4
-
-*Previous release*
+## v2.4
 
 ### Bug Fixes
-
-- Fixed smart/curly quotes throughout `words.js` that prevented Chrome from loading words
-- Fixed apostrophe on Kinderzimmer (`children's room`) entry
+- Fixed smart/curly quotes throughout `words.js` preventing Chrome from loading words
+- Fixed apostrophe on Kinderzimmer entry
 - Moved `<script src="words.js">` to correct position before main script
 
 ### Refactor
-
 - Split monolithic `index.html` into three files: `index.html`, `style.css`, `app.js`
 
 ### New Features
-
-- **FBK 4.3 — Sound Effects** — Web Audio API sounds for correct, wrong, and streak events. Toggle in settings panel. No audio files required.
-- **FBK 1.2 — Lenient Checking** — Small typos are forgiven automatically. Umlaut alternatives accepted (ae/oe/ue). “to “ prefix stripped for verbs. Amber feedback shown when a typo is forgiven. Tolerance scales with word length.
+- **— Sound Effects** — Web Audio API sounds for correct, wrong, and streak events. Toggle in settings. No audio files required.
+- **— Lenient Checking** — Small typos forgiven automatically. Umlaut alternatives accepted (ae/oe/ue). "to " prefix stripped for verbs. Amber feedback shown on lenient pass. Tolerance scales with word length.
 
 ### App Rename
-
 - Renamed from **Wortschatz** to **WortTrek**
 
------
+---
 
-## alpha v2.3
-
-*Previous release*
+## v2.3
 
 ### Bug Fixes
-
 - Fixed Chrome localStorage compatibility issue
 - Fixed smart quote encoding in word data
 
 ### New Features
-
 - Hard Words mode with wrongCount tracking
 - Strength bar per word (5 dots)
 - Haptics toggle in settings
@@ -63,14 +78,12 @@
 - Save indicator (✓ saved)
 - Round complete screen with accuracy stats
 
------
+---
 
-## alpha v2.0
-
-*Structured rebuild*
+## v2.0 — Beta
+_Structured rebuild_
 
 ### New Features
-
 - SRS weighted queue
 - Article quiz (der/die/das buttons)
 - Auto-play toggle
@@ -79,15 +92,52 @@
 - Score tracking (correct / wrong / streak)
 - Progress bar
 
------
+---
 
-## v1.0
-
-*Initial release*
+## v1.0 — Alpha
+_Initial release_
 
 - Core practice loop (Mixed, DE→EN, EN→DE modes)
 - Text-to-speech pronunciation
 - Basic word list with 300 entries
 - Simple correct / wrong answer checking
 
------
+---
+
+## Backlog
+
+| F | Feature | Status |
+|-----|---------|--------|
+| F 1.1 | Persist stats + daily streak | 📋 Backlog |
+| F 1.2 | Lenient checking | ✅ v2.4 |
+| F 1.3 | Hard Words weighting | ✅ v2.5 |
+| F 1.4 | Smart Reversal — direction-aware SRS | 📋 Backlog |
+| F 1.5 | Ghost Typos — lenient words reappear within 3–5 turns | 📋 Backlog |
+| F 2.1 | Export button | 📋 Backlog |
+| F 2.2 | Enhanced round-complete screen | 📋 Backlog |
+| F 2.3 | Mobile keyboard fix + confetti | 📋 Backlog |
+| F 2.4 | Bulk Export | 📋 Backlog |
+| F 2.5 | Clear All Words | 📋 Backlog |
+| F 3.1 | Categories | 📋 Backlog |
+| F 3.3 | Voice fallback message | 📋 Backlog |
+| F 4.1 | Show answer button | ✅ v2.5 |
+| F 4.2 | Complete feedback system redesign | ✅ v2.6 |
+| F 4.3 | Sound effects | ✅ v2.4 |
+| F 4.4 | Offline-first / PWA | 📋 Backlog |
+| F 4.5 | Input Shake | ✅ v2.6 |
+| F 4.6 | Dynamic Feedback Phrases | ✅ v2.6 |
+| F 5.1 | Normal / Free Practice | ✅ existing |
+| F 5.2 | Daily Goal / Target Cards | 📋 Backlog |
+| F 5.3 | Timed Round | 📋 Backlog |
+| F 5.4 | Weak Words First / Hard Review | 📋 Backlog |
+| F 5.5 | New Words Only | 📋 Backlog |
+| F 5.6 | Category Drill | 📋 Backlog |
+| F 5.7 | Speed Drill / Blitz | 📋 Backlog |
+| F 5.8 | No-Skip Marathon | 📋 Backlog |
+| F 5.9 | Production Marathon (EN→DE only) | 📋 Backlog |
+| F 5.10 | Infinite Streak Challenge | 📋 Backlog |
+| F 5.11 | Combo / Multiplier Mode | 📋 Backlog |
+| F 5.12 | Listening Drill (TTS → type what you hear) | 📋 Backlog |
+| F 5.13 | Audio-Only Surprise | 📋 Backlog |
+| F 5.14 | Session Mode — 20-word session with end screen | ✅ v2.6 |
+| F 6.1 | AI Import Assistant | 📋 Backlog |

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="netlify-email-obfuscation" content="off">
-  <title>WortTrek - Alpha v2.5</title>
+  <title>WortTrek Vocab V2.6</title>
   <link href="[https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap](https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap)" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script>
@@ -17,7 +17,7 @@
 
 <header>
   <div>
-    <div class="logo">WortTrek <span>// alpha v2.5</span></div>
+    <div class="logo">WortTrek <span>// v2.6</span></div>
   </div>
   <div class="stats-bar">
     <div class="stats-box">
@@ -65,15 +65,24 @@
 
   <div class="practice-section active" id="tab-practice">
     <div class="mode-selector">
-      <button class="mode-pill active" onclick="setMode('mixed', this)">🎲 Mixed</button>
-      <button class="mode-pill" onclick="setMode('de-en', this)">🇩🇪 → 🇬🇧</button>
-      <button class="mode-pill" onclick="setMode('en-de', this)">🇬🇧 → 🇩🇪</button>
-      <button class="mode-pill" onclick="setMode('article', this)">Der/Die/Das?</button>
-      <button class="mode-pill hard-words-pill" id="hard-words-pill" onclick="setMode('hard', this)">🔥 Hard Words</button>
-    </div>
+      <div class="seg-bar">
+                <button class="mode-pill active pill-mixed" onclick="setMode('mixed', this)">🎲 Mixed & Endless</button>
+        <button class="mode-pill pill-trek" onclick="setMode('trek', this)">🚀 Session</button>
+        <button class="mode-pill pill-hard hard-words-pill" id="hard-words-pill" onclick="setMode('hard', this)">🔥 Mistakes</button>
+        <button class="mode-pill pill-article" onclick="setMode('article', this)">⚡ Articles</button>
+<button class="mode-pill pill-de-en" onclick="setMode('de-en', this)">🇩🇪 → 🇬🇧</button>
+        <button class="mode-pill pill-en-de" onclick="setMode('en-de', this)">🇬🇧 → 🇩🇪</button>
+            </div>
+      <div class="scroll-dots" id="seg-dots">
+        <div class="scroll-dot active"></div>
+        <div class="scroll-dot"></div>
+        <div class="scroll-dot"></div>
+      </div>
 
     <div class="progress-bar">
+
       <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
     </div>
 
     <div class="card" id="practice-card">
@@ -129,7 +138,7 @@
       <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Word →</button>
 
       <div class="progress-section">
-        <div class="progress-text"><strong id="words-done">0</strong> / <strong id="words-total">0</strong> words seen</div>
+        <div class="progress-text"><strong id="words-done">0</strong> / <strong id="words-total">0</strong> <span id="progress-label">words seen</span></div>
         <div class="progress-text" style="color: var(--text-dim); font-size:11px;">Press Enter to check or continue</div>
       </div>
     </div>
@@ -165,6 +174,12 @@
           <select class="form-select" id="word-type" onchange="toggleArticleField()">
             <option value="noun">Noun</option>
             <option value="verb">Verb</option>
+            <option value="adjective">Adjective</option>
+            <option value="adverb">Adverb</option>
+            <option value="conjunction">Conjunction</option>
+            <option value="preposition">Preposition</option>
+            <option value="phrase">Phrase</option>
+            <option value="pronoun">Pronoun</option>
           </select>
         </div>
         <div class="form-field" id="article-field">
@@ -208,8 +223,7 @@
   </div>
 </main>
 
-<script src="words.js"></script>
-<script src="app.js"></script>
+<!-- About Modal -->
 
 <div class="modal-overlay" id="about-modal" onclick="closeAboutOnOverlay(event)">
   <div class="modal-box">
@@ -224,5 +238,10 @@
     <button class="modal-close" onclick="closeAbout()">Close</button>
   </div>
 </div>
+
+<script src="words.js"></script>
+
+<script src="app.js"></script>
+
 </body>
 </html>
