@@ -1,4 +1,81 @@
+// — CONFETTI ENGINE —
+const confettiCanvas = document.createElement('canvas');
+confettiCanvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;';
+document.body.appendChild(confettiCanvas);
+const confettiCtx = confettiCanvas.getContext('2d');
+confettiCanvas.width = window.innerWidth;
+confettiCanvas.height = window.innerHeight;
+window.addEventListener('resize', () => {
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+});
+
+let confettiParticles = [];
+let confettiFrame = null;
+const CONFETTI_PALETTE = ['#00BCD4','#80CBC4','#4ecdc4','#b2ebf2','#ffffff'];
+
+function launchConfetti(intensity = 'streak') {
+    const count = intensity === 'session' ? 120 : 60;
+    const originX = window.innerWidth / 2;
+    const originY = window.innerHeight * 0.45;
+
+    for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = intensity === 'session' ? 6 + Math.random() * 8 : 4 + Math.random() * 6;
+        confettiParticles.push({
+            x: originX + (Math.random() - 0.5) * 20,
+            y: originY,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed - 3,
+            gravity: 0.15,
+            life: 1,
+            decay: 0.018 + Math.random() * 0.012,
+            color: CONFETTI_PALETTE[Math.floor(Math.random() * CONFETTI_PALETTE.length)],
+            size: 4 + Math.random() * 5,
+            rotation: Math.random() * Math.PI * 2,
+            rotSpeed: (Math.random() - 0.5) * 0.3,
+            type: Math.random() > 0.5 ? 'rect' : 'circle',
+        });
+    }
+    if (!confettiFrame) animateConfetti();
+}
+
+function animateConfetti() {
+    confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    confettiParticles = confettiParticles.filter(p => p.life > 0);
+
+    for (const p of confettiParticles) {
+        confettiCtx.save();
+        confettiCtx.globalAlpha = p.life;
+        confettiCtx.fillStyle = p.color;
+        confettiCtx.translate(p.x, p.y);
+        confettiCtx.rotate(p.rotation);
+        if (p.type === 'rect') {
+            confettiCtx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+        } else {
+            confettiCtx.beginPath();
+            confettiCtx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+            confettiCtx.fill();
+        }
+        confettiCtx.restore();
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += p.gravity;
+        p.rotation += p.rotSpeed;
+        p.life -= p.decay;
+    }
+
+    if (confettiParticles.length > 0) {
+        confettiFrame = requestAnimationFrame(animateConfetti);
+    } else {
+        confettiFrame = null;
+        confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    }
+}
+
 // — WORD DATA (loaded from words.js) —
+
+
 const DEFAULT_WORDS = (typeof WORD_DATA !== 'undefined') ? WORD_DATA : [];
 let words = [];
 
@@ -32,6 +109,51 @@ const SCORE_KEY = 'wortschatz-score-v1';
 const STORAGE_KEY = 'wortschatz-words-v1';
 const THEME_KEY = 'wortschatz-theme-v1';
 
+function toggleMnemonicEdit() {
+    const area = document.getElementById('mnemonic-edit-area');
+    if (area) area.style.display = area.style.display === 'none' ? 'block' : 'none';
+}
+
+function saveDrawerMnemonic() {
+    const input = document.getElementById('mnemonic-input');
+    if (!input || !currentQuestion) return;
+    const text = input.value.trim();
+    if (!text) return;
+
+    // persist to words array + localStorage
+    saveMnemonic(currentQuestion.german, text);
+    currentQuestion.mnemonic = text;
+
+    // update hint button on practice card
+    const hintReveal = document.getElementById('hint-reveal');
+    const hintRow = document.getElementById('hint-row');
+    if (hintReveal) hintReveal.textContent = text;
+    if (hintRow) hintRow.style.display = 'flex';
+
+    // rebuild the mnemonic section in the drawer to show saved state
+    const section = input.closest('.mnemonic-section');
+    if (section) {
+        section.innerHTML = `
+            <div class="mnemonic-label">Memory tip</div>
+            <div class="mnemonic-text" id="drawer-mnemonic-text">${text}</div>
+            <button class="mnemonic-edit-btn" onclick="toggleMnemonicEdit()">✎ edit tip</button>
+            <div class="mnemonic-edit-area" id="mnemonic-edit-area" style="display:none">
+                <textarea class="mnemonic-input" id="mnemonic-input" rows="2">${text}</textarea>
+                <button class="mnemonic-save-btn" onclick="saveDrawerMnemonic()">Save</button>
+            </div>`;
+    }
+}
+
+
+function toggleHintReveal() {
+    const reveal = document.getElementById('hint-reveal');
+    const label = document.getElementById('hint-btn-label');
+    if (!reveal) return;
+    const showing = reveal.classList.toggle('show');
+    label.textContent = showing ? 'Hide memory tip' : 'Show memory tip';
+}
+
+
 // — SCORE & PERSISTENCE —
 function saveScore() {
     try {
@@ -62,6 +184,7 @@ function resetScore() {
     updateStats();
     updateProgress();
     updateHardWordsPill();
+    updateTipsPill();
 }
 
 // — UTILS —
@@ -127,6 +250,11 @@ function buildQueue() {
         sessionQueue = shuffle([...hardWords]);
         return;
     }
+if (currentMode === 'tips') {
+        const tipWords = words.filter(w => w.mnemonic && w.mnemonic.trim().length > 0);
+        sessionQueue = shuffle([...tipWords]);
+        return;
+    }
     // Article mode: only nouns with articles
     const pool = currentMode === 'article'
         ? words.filter(w => w.type === 'noun' && w.article)
@@ -146,10 +274,20 @@ function updateHardWordsPill() {
     const pill = document.getElementById('hard-words-pill');
     if (!pill) return;
     const count = words.filter(w => (w.wrongCount || 0) > 0).length;
-    pill.textContent = count > 0 ? `🔥 Hard Words (${count})` : '🔥 Hard Words';
+        pill.textContent = count > 0 ? `🔥 My Mistakes (${count})` : '🔥 My Mistakes';
     pill.disabled = count === 0;
     pill.title = count === 0 ? 'No mistakes yet - keep practising!' : `${count} word${count > 1 ? 's' : ''} you have got wrong`;
 }
+
+function updateTipsPill() {
+    const pill = document.getElementById('tips-pill');
+    if (!pill) return;
+    const count = words.filter(w => w.mnemonic && w.mnemonic.trim().length > 0).length;
+    pill.textContent = count > 0 ? `💡 My Tips (${count})` : '💡 My Tips';
+    pill.disabled = count === 0;
+    pill.title = count === 0 ? 'No tips yet — add memory tips when you get words wrong' : `${count} word${count > 1 ? 's' : ''} with memory tips`;
+}
+
 
 // — HAPTICS —
 function vibratePattern(type) {
@@ -238,6 +376,14 @@ function updateStrength(word, isCorrect) {
     }
     saveWords();
     updateHardWordsPill();
+    updateTipsPill();
+}
+
+function saveMnemonic(german, text) {
+    const idx = words.findIndex(w => w.german === german);
+    if (idx === -1) return;
+    words[idx].mnemonic = text.trim();
+    saveWords();
 }
 
 function switchTab(tab) {
@@ -253,8 +399,9 @@ function setMode(mode, el) {
     el.classList.add('active');
     buildQueue();
     wordsSeen.clear();
-    nextQuestion();
+    startNextRound();
 }
+
 
 function updateStrengthBar(word) {
     const s = word.strength || 0;
@@ -306,6 +453,22 @@ function nextQuestion() {
                 return;
             }
         }
+
+if (currentMode === 'tips') {
+            const tipCount = words.filter(w => w.mnemonic && w.mnemonic.trim().length > 0).length;
+            if (tipCount === 0) {
+                document.getElementById('q-label').textContent = '';
+                document.getElementById('q-word').innerHTML = '💡';
+                document.getElementById('mode-label').textContent = '💡 Tips';
+                document.getElementById('feedback').className = 'feedback correct show';
+                document.getElementById('feedback').textContent = 'No memory tips yet! Get a word wrong and add a tip in the drawer.';
+                document.getElementById('next-btn').className = 'next-btn';
+                document.getElementById('answer-row').style.display = 'none';
+                document.getElementById('article-choices').style.display = 'none';
+                return;
+            }
+        }
+
         wordsSeen.clear();
         buildQueue();
         showRoundComplete();
@@ -335,7 +498,8 @@ function nextQuestion() {
     document.getElementById('article-choices').style.display = isArticle ? 'flex' : 'none';
     document.getElementById('answer-row').style.display = isArticle ? 'none' : 'flex';
 
-    const modeLabels = { 'de-en': '🇩🇪 German → English', 'en-de': '🇬🇧 English → German', 'article': 'Der / Die / Das?', 'hard': '🔥 Hard Words', 'trek': '🚀 Session Mode' };
+      const modeLabels = { 'de-en': '🇩🇪 German → English', 'en-de': '🇬🇧 English → German', 'article': 'Der / Die / Das?', 'hard': '🔥 Mistakes', 'trek': '🚀 Session Mode', 'tips': '💡 Tips — words with memory tips' };
+
     document.getElementById('mode-label').textContent = currentMode === 'mixed' ? '🎲 Mixed Unlimited - ' + modeLabels[questionType] : (modeLabels[currentMode] || modeLabels[questionType]);
 
     let qLabel = '', qWord = '';
@@ -351,8 +515,19 @@ function nextQuestion() {
         qWord = currentQuestion.german + `<span class="article-meaning">${currentQuestion.english}</span>`;
     }
 
-    document.getElementById('q-label').textContent = qLabel;
+        document.getElementById('q-label').textContent = qLabel;
     document.getElementById('q-word').innerHTML = qWord;
+
+    const hintRow = document.getElementById('hint-row');
+    const hintReveal = document.getElementById('hint-reveal');
+    if (hintRow) {
+        hintReveal.classList.remove('show');
+        hintReveal.textContent = '';
+        const m = currentQuestion.mnemonic;
+        hintRow.style.display = m ? 'flex' : 'none';
+        if (m) hintReveal.textContent = m;
+    }
+
 
     if (!isArticle) {
         setTimeout(() => document.getElementById('answer-input').focus(), 50);
@@ -471,7 +646,11 @@ function showResult(isCorrect, correctAnswer, inputEl, wasLenient) {
         correct++;
         if (currentMode === 'trek') trekCorrect++;
         streak++;
-        if (streak > 0 && streak % 5 === 0) playSound('streak');
+                if (streak > 0 && streak % 5 === 0) {
+            playSound('streak');
+            launchConfetti('streak');
+        }
+
         if (inputEl) {
             inputEl.classList.add('correct');
             const card = document.getElementById('practice-card');
@@ -563,6 +742,23 @@ function openWrongDrawer(correctAnswer, userTyped) {
     const drawer = document.createElement('div');
     drawer.id = 'wrong-drawer';
     drawer.className = 'wrong-drawer';
+        const m = currentQuestion.mnemonic || '';
+    const mnemonicHTML = m
+        ? `<div class="mnemonic-section">
+               <div class="mnemonic-label">Memory tip</div>
+               <div class="mnemonic-text" id="drawer-mnemonic-text">${m}</div>
+               <button class="mnemonic-edit-btn" onclick="toggleMnemonicEdit()">✎ edit tip</button>
+               <div class="mnemonic-edit-area" id="mnemonic-edit-area" style="display:none">
+                   <textarea class="mnemonic-input" id="mnemonic-input" rows="2">${m}</textarea>
+                   <button class="mnemonic-save-btn" onclick="saveDrawerMnemonic()">Save</button>
+               </div>
+           </div>`
+        : `<div class="mnemonic-section">
+               <div class="mnemonic-label">Memory tip</div>
+               <textarea class="mnemonic-input" id="mnemonic-input" rows="2" placeholder="Add a memory tip to help you remember…"></textarea>
+               <button class="mnemonic-save-btn" onclick="saveDrawerMnemonic()">Save tip</button>
+           </div>`;
+
     drawer.innerHTML = `
         <div class="drawer-peek-bar" onclick="toggleWrongDrawer()">
             <span class="drawer-peek-wrong">✗ ${userTyped}</span>
@@ -575,6 +771,7 @@ function openWrongDrawer(correctAnswer, userTyped) {
             <div class="drawer-title">${randomPhrase('wrong').replace('✗ ', '')}</div>
             <div class="drawer-ans-label">correct answer</div>
             <div class="drawer-ans-word">${correctAnswer}</div>
+            ${mnemonicHTML}
             <button class="drawer-next-btn" onclick="closeWrongDrawer(false)">Next Word →</button>
         </div>`;
 
@@ -622,6 +819,7 @@ function closeWrongDrawer(silent) {
 }
 
 function showTrekComplete() {
+    launchConfetti('session');
     const elapsed = Math.round((Date.now() - trekStartTime) / 1000);
     const mins = Math.floor(elapsed / 60);
     const secs = elapsed % 60;
@@ -663,7 +861,8 @@ function startNextRound() {
     correct = 0; wrong = 0; streak = 0;
     saveScore();
     updateStats();
-    document.getElementById('practice-card').innerHTML = ` <div class="mode-badge" id="mode-label">Mixed Unlimited</div>  <div class="strength-bar" id="strength-bar">  <div class="strength-dot" id="sd-0"></div>  <div class="strength-dot" id="sd-1"></div>  <div class="strength-dot" id="sd-2"></div>  <div class="strength-dot" id="sd-3"></div>  <div class="strength-dot" id="sd-4"></div>  <span class="strength-label" id="strength-label">new</span>  </div>  <div class="question-area">  <div class="question-label" id="q-label">Translate to English:</div>  <div class="question-word" id="q-word">Loading...</div>  </div>  <div class="article-choices" id="article-choices" style="display:none">  <button class="article-btn der-btn" onclick="checkArticle('der')">der<span class="article-label">masculine</span></button>  <button class="article-btn die-btn" onclick="checkArticle('die')">die<span class="article-label">feminine</span></button>  <button class="article-btn das-btn" onclick="checkArticle('das')">das<span class="article-label">neuter</span></button>  </div>  <div class="voice-row">  <button class="voice-btn" id="voice-btn" onclick="speakQuestion()"><span class="voice-icon">🔊</span> Pronounce</button>  <label class="auto-speak-toggle"><input type="checkbox" id="auto-speak"> auto-play</label>  </div>  <div class="answer-row" id="answer-row">  <input type="text" class="answer-input" id="answer-input" placeholder="Type your answer..." onkeydown="handleKey(event)" inputmode="latin" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false">  <div class="button-group">  <button class="submit-btn" onclick="checkAnswer()">Check</button>  <button class="show-answer-btn" onclick="showAnswer()">Show</button>  </div>  </div>  <div class="feedback" id="feedback"></div>  <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Word →</button>  <div class="progress-section">  <div class="progress-text"><strong id="words-done">0</strong> / <strong id="words-total">0</strong> <span id="progress-label">words seen</span></div>  <div class="progress-text" style="color:var(--text-dim);font-size:11px;">Press Enter to check or continue</div>  </div>`;
+    document.getElementById('practice-card').innerHTML = ` <div class="mode-badge" id="mode-label">Mixed Unlimited</div>  <div class="strength-bar" id="strength-bar">  <div class="strength-dot" id="sd-0"></div>  <div class="strength-dot" id="sd-1"></div>  <div class="strength-dot" id="sd-2"></div>  <div class="strength-dot" id="sd-3"></div>  <div class="strength-dot" id="sd-4"></div>  <span class="strength-label" id="strength-label">new</span>  </div>  <div class="question-area">  <div class="question-label" id="q-label">Translate to English:</div>  <div class="question-word" id="q-word">Loading...</div>  </div>  <div class="article-choices" id="article-choices" style="display:none">  <button class="article-btn der-btn" onclick="checkArticle('der')">der<span class="article-label">masculine</span></button>  <button class="article-btn die-btn" onclick="checkArticle('die')">die<span class="article-label">feminine</span></button>  <button class="article-btn das-btn" onclick="checkArticle('das')">das<span class="article-label">neuter</span></button>  </div>    <div class="hint-row" id="hint-row" style="display:none"><button class="hint-btn" onclick="toggleHintReveal()">💡 <span id="hint-btn-label">Show memory tip</span></button></div>  <div class="hint-reveal" id="hint-reveal"></div>  <div class="voice-row">  <button class="voice-btn" id="voice-btn" onclick="speakQuestion()"><span class="voice-icon">🔊</span> Pronounce</button>  <label class="auto-speak-toggle"><input type="checkbox" id="auto-speak"> auto-play</label>  </div>
+  <div class="answer-row" id="answer-row">  <input type="text" class="answer-input" id="answer-input" placeholder="Type your answer..." onkeydown="handleKey(event)" inputmode="latin" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false">  <div class="button-group">  <button class="submit-btn" onclick="checkAnswer()">Check</button>  <button class="show-answer-btn" onclick="showAnswer()">Show</button>  </div>  </div>  <div class="feedback" id="feedback"></div>  <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Word →</button>  <div class="progress-section">  <div class="progress-text"><strong id="words-done">0</strong> / <strong id="words-total">0</strong> <span id="progress-label">words seen</span></div>  <div class="progress-text" style="color:var(--text-dim);font-size:11px;">Press Enter to check or continue</div>  </div>`;
     nextQuestion();
 }
 
@@ -681,19 +880,7 @@ function toggleSettings() {
             updateHapticsButton();
     updateSoundButton();
 
-        const segBar = document.querySelector('.seg-bar');
-    const dots = document.querySelectorAll('#seg-dots .scroll-dot');
-    if (segBar && dots.length) {
-        segBar.addEventListener('scroll', () => {
-            const maxScroll = segBar.scrollWidth - segBar.clientWidth;
-            if (maxScroll <= 0) return;
-            const pct = segBar.scrollLeft / maxScroll;
-            const idx = pct < 0.4 ? 0 : pct < 0.75 ? 1 : 2;
-            dots.forEach((d, i) => d.classList.toggle('active', i === idx));
-        });
-    }
-
-        setTimeout(() => document.addEventListener('click', closeOnOutside), 0);
+      setTimeout(() => document.addEventListener('click', closeOnOutside), 0);
     } else {
         document.getElementById('theme-submenu').classList.remove('open');
     }
@@ -911,8 +1098,11 @@ function renderWordList() {
             }
             const display = w.type === 'noun' ? `${w.article} ${w.german}` : w.german;
             const wc = w.wrongCount || 0;
-            const errorBadge = wc > 0
+                        const errorBadge = wc > 0
             ? `<span class="error-badge">${wc}</span>`
+            : `<span style="color:var(--text-dim);font-family:'DM Mono',monospace;font-size:11px">-</span>`;
+            const tipBadge = w.mnemonic
+            ? `<span title="${w.mnemonic}" style="cursor:help;font-size:13px">💡</span>`
             : `<span style="color:var(--text-dim);font-family:'DM Mono',monospace;font-size:11px">-</span>`;
             return `
             <div class="word-row" style="top:${i * ROW_HEIGHT}px">
@@ -921,6 +1111,7 @@ function renderWordList() {
             <span class="english">${w.english}</span>
             <span>${artTag}</span>
             <span>${errorBadge}</span>
+            <span>${tipBadge}</span>
             <span><button class="delete-btn" onclick="deleteWord(${i})">×</button></span>
             </div>`;
         }).join('');
@@ -1065,11 +1256,13 @@ function saveWords() {
         const currentKeys = new Set(words.map(wordKey));
         const deletedKeys = DEFAULT_WORDS.map(wordKey).filter(k => !currentKeys.has(k));
         const userAdded = words.filter(w => !defaultKeys.has(wordKey(w)));
+
         const strengthMap = {};
         words.forEach(w => {
-            if (w.strength > 0 || w.wrongCount > 0)
-                strengthMap[wordKey(w)] = { s: w.strength, w: w.wrongCount };
+            if (w.strength > 0 || w.wrongCount > 0 || w.mnemonic)
+                strengthMap[wordKey(w)] = { s: w.strength, w: w.wrongCount, m: w.mnemonic || '' };
         });
+
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 2, deletedKeys, userAdded, strengthMap }));
         showSaveIndicator();
     } catch(e) {
@@ -1088,7 +1281,8 @@ function loadWords() {
                 .filter(w => !deletedKeys.has(wordKey(w)))
                 .map(w => {
                     const sm = strengthMap[wordKey(w)];
-                    return sm ? { ...w, strength: sm.s || 0, wrongCount: sm.w || 0 } : { ...w };
+                                        return sm ? { ...w, strength: sm.s || 0, wrongCount: sm.w || 0, mnemonic: sm.m || w.mnemonic || '' } : { ...w };
+
                 });
             const baseKeys = new Set(base.map(wordKey));
             const extras = userAdded.filter(w => !baseKeys.has(wordKey(w)));
@@ -1120,8 +1314,27 @@ function init() {
     buildQueue();
     nextQuestion();
     updateHardWordsPill();
+    updateTipsPill();
     updateHapticsButton();
     updateSoundButton();
+
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isInstalled = window.navigator.standalone === true;
+    if (isIOS && !isInstalled) {
+        document.getElementById('installBanner').style.display = 'block';
+    }
+
+    const segBar = document.querySelector('.seg-bar');
+    const dots = document.querySelectorAll('#seg-dots .scroll-dot');
+    if (segBar && dots.length) {
+        segBar.addEventListener('scroll', () => {
+            const maxScroll = segBar.scrollWidth - segBar.clientWidth;
+            if (maxScroll <= 0) return;
+            const pct = segBar.scrollLeft / maxScroll;
+            const idx = pct < 0.4 ? 0 : pct < 0.75 ? 1 : 2;
+            dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+        });
+    }
 
     const header = document.querySelector('header');
     if (header) {
@@ -1132,5 +1345,21 @@ function init() {
         header.appendChild(ind);
     }
 }
+
+function toggleInstallBanner() {
+    const expanded = document.getElementById('bannerExpanded');
+    const chevron = document.getElementById('pillChevron');
+    const isOpen = expanded.classList.toggle('open');
+    chevron.classList.toggle('open', isOpen);
+}
+
+function dismissInstallBanner(e) {
+    e.stopPropagation();
+    const banner = document.getElementById('installBanner');
+    banner.style.opacity = '0';
+    banner.style.transform = 'translateY(20px)';
+    setTimeout(() => banner.style.display = 'none', 300);
+}
+
 
 init();

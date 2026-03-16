@@ -4,7 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="netlify-email-obfuscation" content="off">
-  <title>WortTrek Vocab V2.6</title>
+    <title>WortTrek Vocabulary V2.7</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0b1120">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="WortTrek Vocab">
+
   <link href="[https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap](https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap)" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script>
@@ -17,7 +24,7 @@
 
 <header>
   <div>
-    <div class="logo">WortTrek <span>// v2.6</span></div>
+    <div class="logo">WortTrek <span>Vocabulary Trainer V2.7</span></div>
   </div>
   <div class="stats-bar">
     <div class="stats-box">
@@ -68,7 +75,8 @@
       <div class="seg-bar">
                 <button class="mode-pill active pill-mixed" onclick="setMode('mixed', this)">🎲 Mixed & Endless</button>
         <button class="mode-pill pill-trek" onclick="setMode('trek', this)">🚀 Session</button>
-        <button class="mode-pill pill-hard hard-words-pill" id="hard-words-pill" onclick="setMode('hard', this)">🔥 Mistakes</button>
+        <button class="mode-pill pill-hard hard-words-pill" id="hard-words-pill" onclick="setMode('hard', this)">🔥 My Mistakes</button>
+        <button class="mode-pill pill-tips" id="tips-pill" onclick="setMode('tips', this)">💡 My Tips</button>
         <button class="mode-pill pill-article" onclick="setMode('article', this)">⚡ Articles</button>
 <button class="mode-pill pill-de-en" onclick="setMode('de-en', this)">🇩🇪 → 🇬🇧</button>
         <button class="mode-pill pill-en-de" onclick="setMode('en-de', this)">🇬🇧 → 🇩🇪</button>
@@ -117,7 +125,13 @@
         </button>
       </div>
 
+           <div class="hint-row" id="hint-row" style="display:none">
+        <button class="hint-btn" onclick="toggleHintReveal()">💡 <span id="hint-btn-label">Show memory tip</span></button>
+      </div>
+      <div class="hint-reveal" id="hint-reveal"></div>
+
       <div class="voice-row">
+
         <button class="voice-btn" id="voice-btn" onclick="speakQuestion()">
           <span class="voice-icon">🔊</span> Pronounce
         </button>
@@ -212,6 +226,7 @@
         <span>English</span>
         <span>Article</span>
         <span>❌</span>
+        <span>💡</span>
         <span>Del</span>
       </div>
       <div class="word-list-scroll" id="word-list-scroll">
@@ -229,7 +244,7 @@
   <div class="modal-box">
     <div class="modal-title">About</div>
     <div class="modal-body">
-      <strong>Aung Myo Thant (Lucius Tariq)</strong>
+      <strong>Made by Aung Myo Thant (Lucius Tariq)</strong>
       <a href="mailto:tariqlwalker@outlook.com">tariqlwalker@outlook.com</a>
       <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--text-dim);">
         Word list created by<br>Aung Myo Thant (Lucius Tariq)
@@ -239,9 +254,47 @@
   </div>
 </div>
 
+<div class="install-banner" id="installBanner" style="display:none">
+    <div class="banner-expanded" id="bannerExpanded">
+        <div class="expanded-inner">
+            <div class="expanded-title">Add to Home Screen</div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-text">Tap the <span class="step-icon">⎋</span> <strong>Share</strong> button at the bottom of Safari</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-text">Scroll down and tap <strong>"Add to Home Screen"</strong></div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-text">Tap <strong>Add</strong> — WortTrek will appear on your home screen and work offline</div>
+                </div>
+            </div>
+            <div class="banner-divider"></div>
+            <div class="expanded-footer">WORKS OFFLINE · NO APP STORE NEEDED</div>
+        </div>
+    </div>
+    <div class="banner-pill" id="bannerPill" onclick="toggleInstallBanner()">
+        <div class="pill-icon">📲</div>
+        <div class="pill-text">
+            Install WortTrek
+            <span>Add to home screen for offline use</span>
+        </div>
+        <div class="pill-chevron" id="pillChevron">▲</div>
+        <div class="pill-dismiss" onclick="dismissInstallBanner(event)">✕</div>
+    </div>
+</div>
+
 <script src="words.js"></script>
-
 <script src="app.js"></script>
-
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js');
+    });
+  }
+</script>
 </body>
 </html>
